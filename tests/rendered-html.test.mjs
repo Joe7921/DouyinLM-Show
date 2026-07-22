@@ -10,13 +10,16 @@ test("interactive demo covers the complete judge loop honestly", async () => {
     readFile(new URL("app/page.tsx", root), "utf8"),
   ]);
 
-  for (const stage of ["goal", "select", "clarify", "compile", "artifact", "source", "revise"]) {
+  for (const stage of ["context", "select", "artifact", "revise"]) {
     assert.match(demo, new RegExp(`key: "${stage}"`));
   }
   assert.match(demo, /流程模拟 · 非实时 AI/);
   assert.match(demo, /采用 3 · 排除 3/);
+  assert.match(demo, /唯一一次追问/);
+  assert.match(demo, /SHOOTING TASK CARD/);
+  assert.match(demo, /VIDEO/);
+  assert.match(demo, /INFERENCE/);
   assert.match(demo, /Artifact ID 保持不变/);
-  assert.match(demo, /勾选不改版本/);
   assert.match(demo, /本次未联网/);
   assert.match(page, /不把模拟过程冒充实时模型结果/);
 });
