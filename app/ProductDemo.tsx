@@ -9,7 +9,7 @@ const PHASES = [
   { key: "context", label: "收藏与目标", duration: 3800 },
   { key: "select", label: "选择与追问", duration: 4400 },
   { key: "artifact", label: "编译任务卡", duration: 5000 },
-  { key: "revise", label: "来源与修改", duration: 5200 },
+  { key: "revise", label: "来源与修改", duration: 6200 },
 ] as const;
 
 const STAGE_COPY = [
@@ -519,7 +519,7 @@ function RevisionScene({ checked }: { checked: boolean }) {
   return (
     <div className="revision-scene-v2">
       <div className="provenance-panel">
-        <SceneLead number="04" eyebrow="Provenance" title="每条关键行动，都能打开依据" detail="Video、Web 与 AI 综合有清晰边界。" />
+        <SceneLead number="04" eyebrow="Provenance" title="形态持续变化，来源关系始终保留" detail="Video、Web 与 AI 综合有清晰边界。" />
         <div className="focus-action"><small>任务卡 · 到场后</small><b>强光时锁定面部，再微调曝光</b><span>3 条依据</span></div>
         <div className="source-list-v2">
           <SourceEntry kind="VIDEO" title="晴天手机人像" detail="01:18—01:31 · 面部对焦与曝光" image="/demo/video-seaside-detail.jpg" />
@@ -530,14 +530,63 @@ function RevisionScene({ checked }: { checked: boolean }) {
       </div>
 
       <div className="revision-panel">
-        <div className="revision-command-v2"><span>你</span><p>压缩成一屏小纸条</p><i>已发送</i></div>
-        <div className="version-line"><span>v1</span><i>→</i><span>v2</span><p>Artifact ID 保持不变</p></div>
-        <article className="compact-card-v2">
-          <header><div><small>COMPACT VARIANT · v2</small><h3>海边人像 · 一屏小纸条</h3></div><span>5 行</span></header>
-          <ol>{lines.map((line, index) => <li key={line}><i>{index + 1}</i><span>{line}</span>{checked && index === 3 ? <b>✓</b> : null}</li>)}</ol>
-          <footer><span>来源关系已保留</span><b>{checked ? "勾选状态已保留" : "可继续修改"}</b></footer>
-        </article>
-        <p className="revision-success"><i /> 同一成果持续 Vibe，而不是重新生成第二份文档</p>
+        <div className="iteration-heading">
+          <div><small>CONTINUOUS ARTIFACT</small><b>一句话，让同一成果持续进化</b></div>
+          <span>展示形态演绎</span>
+        </div>
+
+        <div className="iteration-command-stage" aria-label="连续修改指令">
+          <div className="iteration-command command-compact"><span>你</span><p>压缩成一屏小纸条</p><i>v2</i></div>
+          <div className="iteration-command command-compare"><span>你</span><p>把三种拍法整理成决策对比</p><i>v3</i></div>
+          <div className="iteration-command command-story"><span>你</span><p>按四个镜头重新编排</p><i>v4</i></div>
+        </div>
+
+        <div className="iteration-version-line" aria-label="Artifact 版本演进">
+          {[
+            ["v1", "任务卡"],
+            ["v2", "小纸条"],
+            ["v3", "决策表"],
+            ["v4", "四镜分镜"],
+          ].map(([version, label], index) => (
+            <div className={`version-node node-${index + 1}`} key={version}><span>{version}</span><small>{label}</small>{index < 3 ? <i>→</i> : null}</div>
+          ))}
+        </div>
+
+        <div className="iteration-canvas">
+          <article className="iteration-view iteration-compact">
+            <header><div><small>COMPACT VARIANT · v2 · 当前可用</small><h3>海边人像 · 一屏小纸条</h3></div><span>5 行</span></header>
+            <ol>{lines.map((line, index) => <li key={line}><i>{index + 1}</i><span>{line}</span>{checked && index === 3 ? <b>✓</b> : null}</li>)}</ol>
+          </article>
+
+          <article className="iteration-view iteration-compare">
+            <header><div><small>DECISION VIEW · v3 · 概念扩展演绎</small><h3>三种拍法，留下一个最优解</h3></div><span>3 → 1</span></header>
+            <div className="mini-decision-list">
+              <p className="selected"><i>A</i><span><b>边走边聊</b><small>自然互动 92 · 现场稳定 88</small></span><em>最优</em></p>
+              <p><i>B</i><span><b>逆光剪影</b><small>氛围突出 · 曝光容错低</small></span><em>备选</em></p>
+              <p><i>C</i><span><b>静态看镜头</b><small>画面稳定 · 互动感较弱</small></span><em>保底</em></p>
+            </div>
+          </article>
+
+          <article className="iteration-view iteration-story">
+            <header><div><small>SHOT LIST · v4 · 概念扩展演绎</small><h3>海边互动 · 四镜分镜</h3></div><span>4 镜</span></header>
+            <div className="mini-story-grid">
+              {[
+                ["01", "建立环境", "/demo/video-seaside.jpg"],
+                ["02", "自然互动", "/demo/video-seaside-detail.jpg"],
+                ["03", "动作特写", "/demo/video-lotus-detail.jpg"],
+                ["04", "回头收尾", "/demo/video-lotus.jpg"],
+              ].map(([number, title, image]) => (
+                <section key={number}><div><Image alt="" fill sizes="100px" src={image} /><span>{number}</span></div><b>{title}</b></section>
+              ))}
+            </div>
+          </article>
+        </div>
+
+        <div className="iteration-invariants">
+          <span><i>✓</i> Artifact ID 保持不变</span>
+          <span><i>✓</i> 来源关系保留</span>
+          <span><i>✓</i> {checked ? "勾选状态已保留" : "可继续一句话修改"}</span>
+        </div>
       </div>
     </div>
   );

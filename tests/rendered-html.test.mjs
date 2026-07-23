@@ -29,9 +29,13 @@ test("interactive demo covers the complete judge loop honestly", async () => {
   assert.match(demo, /概念扩展演绎/);
   assert.match(demo, /逐条评估，再选择最优解/);
   assert.match(demo, /已选为执行方案/);
+  assert.match(demo, /一句话，让同一成果持续进化/);
+  assert.match(demo, /把三种拍法整理成决策对比/);
+  assert.match(demo, /按四个镜头重新编排/);
+  assert.match(demo, /Artifact ID 保持不变/);
+  assert.match(demo, /来源关系保留/);
   assert.match(demo, /VIDEO/);
   assert.match(demo, /INFERENCE/);
-  assert.match(demo, /Artifact ID 保持不变/);
   assert.match(demo, /本次未联网/);
   assert.match(page, /不把模拟过程冒充实时模型结果/);
 });
