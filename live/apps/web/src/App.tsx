@@ -302,13 +302,18 @@ function VideoTile({ video }: { video: VideoCard }) {
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="line-clamp-2 text-[15px] font-semibold leading-5">{video.title}</h3>
+            <p className="mb-1 text-[9px] font-semibold tracking-[0.12em] text-accent uppercase">
+              AI 标题
+            </p>
+            <h3 className="line-clamp-2 text-[15px] font-semibold leading-5">
+              {video.purpose_line || video.title}
+            </h3>
             <p className="mt-1 text-[11px] text-faint">{video.author || "作者未知"}</p>
           </div>
           {video.duration_ms && <span className="shrink-0 text-[10px] text-faint">{formatDuration(video.duration_ms)}</span>}
         </div>
-        <p className={`mt-4 text-sm leading-6 ${video.purpose_line ? "text-ink" : "text-faint"}`}>
-          {video.purpose_line || video.error_message || status.description}
+        <p className={`mt-4 line-clamp-3 text-sm leading-6 ${video.summary ? "text-muted" : "text-faint"}`}>
+          {video.summary || video.error_message || status.description}
         </p>
         {video.content_types.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2" aria-label="内容类型">
