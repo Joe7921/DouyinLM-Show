@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 const PHASES = [
+  { key: "parse", label: "自动解析", duration: 4600 },
   { key: "context", label: "收藏与目标", duration: 3800 },
   { key: "select", label: "选择与追问", duration: 4400 },
   { key: "artifact", label: "编译任务卡", duration: 5000 },
@@ -12,6 +13,7 @@ const PHASES = [
 ] as const;
 
 const STAGE_COPY = [
+  "授权收藏在后台异步完成理解与两级分类",
   "收藏天然成为上下文，第一句话直接开始",
   "采用、排除和唯一一次追问都可检查",
   "把零散教程编译成现场可执行的 Artifact",
@@ -77,7 +79,7 @@ export function ProductDemo() {
   }, [phase.duration, phaseIndex, playing, reducedMotion]);
 
   useEffect(() => {
-    if (phaseIndex !== 2) return;
+    if (phaseIndex !== 3) return;
     const finalIndex = randomArtifactIndex();
     let step = 0;
     let roulette: number | undefined;
@@ -143,7 +145,7 @@ export function ProductDemo() {
             role="tab"
             type="button"
           >
-            <span>{index < phaseIndex ? "✓" : String(index + 1).padStart(2, "0")}</span>
+            <span>{index < phaseIndex ? "✓" : String(index).padStart(2, "0")}</span>
             <small>{item.label}</small>
           </button>
         ))}
@@ -158,7 +160,7 @@ export function ProductDemo() {
             artifactVariant={ARTIFACT_VARIANTS[artifactVariantIndex].key}
             selectingArtifact={selectingArtifact}
             onCheck={() => setChecked((value) => !value)}
-            onOpenSource={() => goTo(3)}
+            onOpenSource={() => goTo(4)}
             onShuffleArtifact={() => {
               setArtifactVariantIndex((current) => (current + 1 + randomArtifactIndex() % (ARTIFACT_VARIANTS.length - 1)) % ARTIFACT_VARIANTS.length);
               setSelectingArtifact(false);
@@ -168,7 +170,7 @@ export function ProductDemo() {
       </div>
 
       <footer className="demo-controls">
-        <div className="stage-caption"><span>{String(phaseIndex + 1).padStart(2, "0")} / 04</span><p>{STAGE_COPY[phaseIndex]}</p></div>
+        <div className="stage-caption"><span>{String(phaseIndex).padStart(2, "0")} / 04</span><p>{STAGE_COPY[phaseIndex]}</p></div>
         <div className="control-buttons">
           <button aria-label="上一步" disabled={phaseIndex === 0} onClick={() => goTo(phaseIndex - 1)} type="button">←</button>
           <button className="play-button" aria-label={playing ? "暂停演示" : "继续演示"} onClick={() => setPlaying((value) => !value)} type="button">{playing ? "Ⅱ" : "▶"}</button>
@@ -198,6 +200,7 @@ function Scene({
   onOpenSource: () => void;
   onShuffleArtifact: () => void;
 }) {
+  if (phase === "parse") return <ParseScene />;
   if (phase === "context") return <ContextScene />;
   if (phase === "select") return <SelectScene />;
   if (phase === "artifact") {
@@ -213,6 +216,67 @@ function Scene({
     );
   }
   return <RevisionScene checked={checked} />;
+}
+
+function ParseScene() {
+  const parseStages = [
+    { label: "校验授权与文件", key: "VALIDATING" },
+    { label: "语音转写", key: "TRANSCRIBING" },
+    { label: "视频内容理解", key: "UNDERSTANDING" },
+    { label: "自动两级分类", key: "CLASSIFYING" },
+  ];
+  const categories = [
+    { title: "海边人像", count: 2, tone: "coral" },
+    { title: "手机摄影", count: 2, tone: "sage" },
+    { title: "室内弱光", count: 2, tone: "neutral" },
+  ];
+
+  return (
+    <div className="parse-scene">
+      <div className="parse-source">
+        <SceneLead number="00" eyebrow="Async collection intelligence" title="收藏进入后台，AI 自动理解与分类" detail="无需先手工整理；解析完成后，分类与内容理解会成为后续目标的隐形上下文。" />
+        <div className="folded-collection">
+          <div className="folded-shadow shadow-three"><span>+ 其他收藏视频</span></div>
+          <div className="folded-shadow shadow-two"><span>更多摄影教程</span></div>
+          <div className="folded-shadow shadow-one"><span>已授权收藏</span></div>
+          <div className="parse-video-row">
+            {VIDEOS.slice(0, 3).map((video, index) => (
+              <article key={video.id} style={{ "--parse-video-delay": `${index * 110}ms` } as CSSProperties}>
+                <div><Image alt={`正在解析：${video.title}`} fill priority sizes="100px" src={video.image} /><i /></div>
+                <p><b>{video.title}</b><small>{index === 0 ? "理解画面与动作" : index === 1 ? "提取拍摄技巧" : "识别适用场景"}</small></p>
+              </article>
+            ))}
+          </div>
+        </div>
+        <p className="parse-boundary"><i /> 本地授权导入 · 后台运行 · 可离开页面</p>
+      </div>
+
+      <div className="parse-job">
+        <header><span><i /></span><p><small>BACKGROUND JOB</small><b>解析收藏内容</b></p><em>SSE</em></header>
+        <div className="parse-stage-list">
+          {parseStages.map((stage, index) => (
+            <div key={stage.key} style={{ "--parse-stage-delay": `${450 + index * 680}ms` } as CSSProperties}>
+              <span>{index + 1}</span><p><b>{stage.label}</b><small>{stage.key}</small></p><i>✓</i>
+            </div>
+          ))}
+        </div>
+        <footer><span><i /></span><p><b>READY</b><small>理解包与分类已保存</small></p><em>100%</em></footer>
+      </div>
+
+      <div className="category-result">
+        <header><small>AUTO CLASSIFICATION</small><b>摄影教程</b><span>一级分类</span></header>
+        <div className="category-trunk"><i /><span /></div>
+        <div className="category-branches">
+          {categories.map((category, index) => (
+            <article className={category.tone} key={category.title} style={{ "--category-delay": `${2450 + index * 260}ms` } as CSSProperties}>
+              <span>{String(index + 1).padStart(2, "0")}</span><p><b>{category.title}</b><small>二级分类 · {category.count} 条</small></p><i>→</i>
+            </article>
+          ))}
+        </div>
+        <p><i /> 自动完成，无需用户先整理收藏夹</p>
+      </div>
+    </div>
+  );
 }
 
 function ContextScene() {
