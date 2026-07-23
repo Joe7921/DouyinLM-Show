@@ -4,7 +4,7 @@ services:
     runtime: docker
     plan: starter
     region: singapore
-    dockerfilePath: ./live/Dockerfile.render
+    dockerfilePath: ./live/Dockerfile
     dockerContext: ./live
     autoDeployTrigger: off
     healthCheckPath: /api/health/ready
