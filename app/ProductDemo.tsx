@@ -27,7 +27,21 @@ const VIDEOS = [
   { id: "06", title: "室内氛围构图", detail: "缺少本次现场动作", image: "/demo/video-restaurant-detail.jpg", adopted: false },
 ] as const;
 
+const ARTIFACT_VARIANTS = [
+  { key: "task", label: "现场任务卡", status: "当前主演示" },
+  { key: "compact", label: "一屏小纸条", status: "演示形态" },
+  { key: "compare", label: "对比决策表", status: "概念扩展演绎" },
+  { key: "storyboard", label: "四镜分镜", status: "概念扩展演绎" },
+] as const;
+
 type PhaseKey = (typeof PHASES)[number]["key"];
+type ArtifactVariantKey = (typeof ARTIFACT_VARIANTS)[number]["key"];
+
+function randomArtifactIndex() {
+  const value = new Uint32Array(1);
+  window.crypto.getRandomValues(value);
+  return value[0] % ARTIFACT_VARIANTS.length;
+}
 
 export function ProductDemo() {
   const [phaseIndex, setPhaseIndex] = useState(0);
@@ -35,6 +49,8 @@ export function ProductDemo() {
   const [cycle, setCycle] = useState(0);
   const [checked, setChecked] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [artifactVariantIndex, setArtifactVariantIndex] = useState(0);
+  const [selectingArtifact, setSelectingArtifact] = useState(false);
   const phase = PHASES[phaseIndex];
 
   useEffect(() => {
@@ -59,6 +75,34 @@ export function ProductDemo() {
     }, phase.duration);
     return () => window.clearTimeout(timer);
   }, [phase.duration, phaseIndex, playing, reducedMotion]);
+
+  useEffect(() => {
+    if (phaseIndex !== 2) return;
+    const finalIndex = randomArtifactIndex();
+    let step = 0;
+    let roulette: number | undefined;
+    const start = window.setTimeout(() => {
+      if (reducedMotion) {
+        setArtifactVariantIndex(finalIndex);
+        setSelectingArtifact(false);
+        return;
+      }
+      setSelectingArtifact(true);
+      roulette = window.setInterval(() => {
+        step += 1;
+        setArtifactVariantIndex((current) => (current + 1) % ARTIFACT_VARIANTS.length);
+        if (step >= 7) {
+          window.clearInterval(roulette);
+          setArtifactVariantIndex(finalIndex);
+          setSelectingArtifact(false);
+        }
+      }, 150);
+    }, 0);
+    return () => {
+      window.clearTimeout(start);
+      if (roulette !== undefined) window.clearInterval(roulette);
+    };
+  }, [cycle, phaseIndex, reducedMotion]);
 
   const progress = useMemo(
     () => Math.round(((phaseIndex + 1) / PHASES.length) * 100),
@@ -108,7 +152,18 @@ export function ProductDemo() {
 
       <div className="demo-viewport cinematic-viewport" aria-live="polite">
         <div className={`demo-scene cinematic-scene scene-${phase.key}`} key={`${phase.key}-${cycle}`}>
-          <Scene phase={phase.key} checked={checked} onCheck={() => setChecked((value) => !value)} onOpenSource={() => goTo(3)} />
+          <Scene
+            phase={phase.key}
+            checked={checked}
+            artifactVariant={ARTIFACT_VARIANTS[artifactVariantIndex].key}
+            selectingArtifact={selectingArtifact}
+            onCheck={() => setChecked((value) => !value)}
+            onOpenSource={() => goTo(3)}
+            onShuffleArtifact={() => {
+              setArtifactVariantIndex((current) => (current + 1 + randomArtifactIndex() % (ARTIFACT_VARIANTS.length - 1)) % ARTIFACT_VARIANTS.length);
+              setSelectingArtifact(false);
+            }}
+          />
         </div>
       </div>
 
@@ -126,10 +181,37 @@ export function ProductDemo() {
   );
 }
 
-function Scene({ phase, checked, onCheck, onOpenSource }: { phase: PhaseKey; checked: boolean; onCheck: () => void; onOpenSource: () => void }) {
+function Scene({
+  phase,
+  checked,
+  artifactVariant,
+  selectingArtifact,
+  onCheck,
+  onOpenSource,
+  onShuffleArtifact,
+}: {
+  phase: PhaseKey;
+  checked: boolean;
+  artifactVariant: ArtifactVariantKey;
+  selectingArtifact: boolean;
+  onCheck: () => void;
+  onOpenSource: () => void;
+  onShuffleArtifact: () => void;
+}) {
   if (phase === "context") return <ContextScene />;
   if (phase === "select") return <SelectScene />;
-  if (phase === "artifact") return <ArtifactScene checked={checked} onCheck={onCheck} onOpenSource={onOpenSource} />;
+  if (phase === "artifact") {
+    return (
+      <ArtifactScene
+        checked={checked}
+        selected={artifactVariant}
+        selecting={selectingArtifact}
+        onCheck={onCheck}
+        onOpenSource={onOpenSource}
+        onShuffle={onShuffleArtifact}
+      />
+    );
+  }
   return <RevisionScene checked={checked} />;
 }
 
@@ -198,20 +280,61 @@ function DecisionRow({ video, index }: { video: (typeof VIDEOS)[number]; index: 
   );
 }
 
-function ArtifactScene({ checked, onCheck, onOpenSource }: { checked: boolean; onCheck: () => void; onOpenSource: () => void }) {
+function ArtifactScene({
+  checked,
+  selected,
+  selecting,
+  onCheck,
+  onOpenSource,
+  onShuffle,
+}: {
+  checked: boolean;
+  selected: ArtifactVariantKey;
+  selecting: boolean;
+  onCheck: () => void;
+  onOpenSource: () => void;
+  onShuffle: () => void;
+}) {
   return (
     <div className="artifact-scene-v2">
       <div className="compiler-lane">
-        <SceneLead number="03" eyebrow="Artifact compiler" title="把收藏证据编译成行动成果" detail="按照现场顺序组织，同时校验每条关键建议的来源。" />
+        <SceneLead number="03" eyebrow="Artifact compiler" title="同一份收藏，编译成最合适的成果" detail="目标不同，Artifact 的形态也会随之改变。" />
         <div className="compiler-stack">
           {["锁定收藏范围", "编译现场顺序", "校验关键来源"].map((item, index) => <div key={item} style={{ "--pass-delay": `${index * 260}ms` } as CSSProperties}><span>{index + 1}</span><p>{item}</p><i>完成</i></div>)}
         </div>
-        <div className="compiler-status"><span><i /></span><p><b>Collection Artifact Compiler</b><small>同一 Artifact · 结构化输出</small></p><em>READY</em></div>
+        <div className={`artifact-picker ${selecting ? "selecting" : ""}`}>
+          <header><span>{selecting ? "正在匹配成果形态…" : "已选择成果形态"}</span><button onClick={onShuffle} type="button">换一种 ↻</button></header>
+          <div>
+            {ARTIFACT_VARIANTS.map((variant) => (
+              <span className={variant.key === selected ? "active" : ""} key={variant.key}><i />{variant.label}</span>
+            ))}
+          </div>
+        </div>
+        <div className="compiler-status"><span><i /></span><p><b>Collection Artifact Compiler</b><small>统一来源关系 · 多种结构化输出</small></p><em>{selecting ? "MATCHING" : "READY"}</em></div>
       </div>
 
-      <TaskCard checked={checked} onCheck={onCheck} onOpenSource={onOpenSource} />
+      <div className={`artifact-output ${selecting ? "is-selecting" : ""}`} key={selected}>
+        <ArtifactVariant selected={selected} checked={checked} onCheck={onCheck} onOpenSource={onOpenSource} />
+      </div>
     </div>
   );
+}
+
+function ArtifactVariant({
+  selected,
+  checked,
+  onCheck,
+  onOpenSource,
+}: {
+  selected: ArtifactVariantKey;
+  checked: boolean;
+  onCheck: () => void;
+  onOpenSource: () => void;
+}) {
+  if (selected === "task") return <TaskCard checked={checked} onCheck={onCheck} onOpenSource={onOpenSource} />;
+  if (selected === "compact") return <CompactArtifact onOpenSource={onOpenSource} />;
+  if (selected === "compare") return <ComparisonArtifact onOpenSource={onOpenSource} />;
+  return <StoryboardArtifact onOpenSource={onOpenSource} />;
 }
 
 function TaskCard({ checked, onCheck, onOpenSource }: { checked: boolean; onCheck: () => void; onOpenSource: () => void }) {
@@ -222,7 +345,7 @@ function TaskCard({ checked, onCheck, onOpenSource }: { checked: boolean; onChec
   ];
   return (
     <article className="task-card-v2">
-      <header><div><small>SHOOTING TASK CARD · v1</small><h3>晴天海边自然互动人像</h3><p>现场可以直接照着完成的任务卡</p></div><span>8 项<br />3 阶段</span></header>
+      <header><div><small>SHOOTING TASK CARD · 当前主演示</small><h3>晴天海边自然互动人像</h3><p>现场可以直接照着完成的任务卡</p></div><span>8 项<br />3 阶段</span></header>
       <div className="task-sections">
         {sections.map((section, sectionIndex) => (
           <section key={section.title}>
@@ -244,6 +367,66 @@ function TaskCard({ checked, onCheck, onOpenSource }: { checked: boolean; onChec
       <footer><button onClick={onCheck} type="button"><i className={checked ? "checked" : ""}>{checked ? "✓" : ""}</i>{checked ? "已完成一项" : "试着勾选"}</button><button onClick={onOpenSource} type="button">查看行动依据 <span>→</span></button></footer>
     </article>
   );
+}
+
+function CompactArtifact({ onOpenSource }: { onOpenSource: () => void }) {
+  const lines = ["镜头擦净，留足存储", "先走动互动，再看镜头", "锁脸后轻微降曝光", "拍完放大检查眼睛", "保留自然动作备选"];
+  return (
+    <article className="artifact-card-v2 compact-artifact">
+      <ArtifactHeader eyebrow="POCKET NOTE · 演示形态" title="海边人像 · 一屏小纸条" detail="把现场动作压缩成抬手就能扫完的五行提醒" meta="5 行" />
+      <ol>{lines.map((line, index) => <li key={line}><i>{index + 1}</i><span>{line}</span><b>{index === 2 ? "VIDEO" : "✓"}</b></li>)}</ol>
+      <footer><span>来源关系与任务状态保持不变</span><button onClick={onOpenSource} type="button">查看依据 →</button></footer>
+    </article>
+  );
+}
+
+function ComparisonArtifact({ onOpenSource }: { onOpenSource: () => void }) {
+  const options = [
+    { title: "边走边聊", note: "最自然 · 成片率高", score: "推荐", image: "/demo/video-seaside.jpg" },
+    { title: "逆光剪影", note: "氛围强 · 曝光较难", score: "备选", image: "/demo/video-seaside-detail.jpg" },
+    { title: "静态看镜头", note: "最稳定 · 互动感弱", score: "保底", image: "/demo/video-lotus-detail.jpg" },
+  ];
+  return (
+    <article className="artifact-card-v2 comparison-artifact">
+      <ArtifactHeader eyebrow="DECISION TABLE · 概念扩展演绎" title="海边人像 · 三种拍法对比" detail="用收藏证据帮助用户在现场快速做选择" meta="3 方案" />
+      <div className="comparison-grid">
+        {options.map((option, index) => (
+          <section className={index === 0 ? "recommended" : ""} key={option.title}>
+            <div><Image alt="" fill sizes="120px" src={option.image} /></div>
+            <small>方案 {String.fromCharCode(65 + index)}</small><h4>{option.title}</h4><p>{option.note}</p><b>{option.score}</b>
+          </section>
+        ))}
+      </div>
+      <footer><span>由 3 条授权视频与 AI 综合判断</span><button onClick={onOpenSource} type="button">打开对比依据 →</button></footer>
+    </article>
+  );
+}
+
+function StoryboardArtifact({ onOpenSource }: { onOpenSource: () => void }) {
+  const shots = [
+    { title: "建立环境", action: "人物从远处走入画面", time: "3s", image: "/demo/video-seaside.jpg" },
+    { title: "自然互动", action: "边走边聊，不看镜头", time: "5s", image: "/demo/video-seaside-detail.jpg" },
+    { title: "动作特写", action: "手部递物，保留海面", time: "3s", image: "/demo/video-lotus-detail.jpg" },
+    { title: "回头收尾", action: "走过镜头后自然回头", time: "4s", image: "/demo/video-lotus.jpg" },
+  ];
+  return (
+    <article className="artifact-card-v2 storyboard-artifact">
+      <ArtifactHeader eyebrow="SHOT LIST · 概念扩展演绎" title="海边互动 · 四镜分镜" detail="把教程动作编排成可以逐镜执行的拍摄脚本" meta="4 镜" />
+      <div className="storyboard-grid">
+        {shots.map((shot, index) => (
+          <section key={shot.title}>
+            <div><Image alt="" fill sizes="140px" src={shot.image} /><span>{shot.time}</span></div>
+            <small>SHOT {String(index + 1).padStart(2, "0")}</small><h4>{shot.title}</h4><p>{shot.action}</p>
+          </section>
+        ))}
+      </div>
+      <footer><span>顺序由 AI 综合，动作来自授权收藏</span><button onClick={onOpenSource} type="button">查看镜头来源 →</button></footer>
+    </article>
+  );
+}
+
+function ArtifactHeader({ eyebrow, title, detail, meta }: { eyebrow: string; title: string; detail: string; meta: string }) {
+  return <header className="artifact-card-header"><div><small>{eyebrow}</small><h3>{title}</h3><p>{detail}</p></div><span>{meta}</span></header>;
 }
 
 function RevisionScene({ checked }: { checked: boolean }) {

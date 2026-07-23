@@ -17,6 +17,11 @@ test("interactive demo covers the complete judge loop honestly", async () => {
   assert.match(demo, /采用 3 · 排除 3/);
   assert.match(demo, /唯一一次追问/);
   assert.match(demo, /SHOOTING TASK CARD/);
+  for (const artifact of ["现场任务卡", "一屏小纸条", "对比决策表", "四镜分镜"]) {
+    assert.match(demo, new RegExp(artifact));
+  }
+  assert.match(demo, /crypto\.getRandomValues/);
+  assert.match(demo, /概念扩展演绎/);
   assert.match(demo, /VIDEO/);
   assert.match(demo, /INFERENCE/);
   assert.match(demo, /Artifact ID 保持不变/);
