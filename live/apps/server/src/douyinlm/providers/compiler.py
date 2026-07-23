@@ -363,7 +363,7 @@ class DeepSeekCompilerProvider(ArkCompilerProvider):
             self._client = OpenAI(
                 api_key=self._settings.deepseek_api_key.get_secret_value(),
                 base_url=self._settings.deepseek_base_url,
-                timeout=self._settings.compiler_timeout_seconds,
+                timeout=self._settings.deepseek_timeout_seconds,
                 max_retries=0,
             )
         return self._client

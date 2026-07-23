@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     deepseek_base_url: str = "https://api.deepseek.com"
     deepseek_model: str = "deepseek-v4-flash"
     deepseek_api_key: SecretStr | None = None
+    deepseek_timeout_seconds: float = Field(default=120.0, ge=30.0, le=180.0)
     ark_upload_purpose: str = "user_data"
     volc_asr_api_key: SecretStr | None = None
     volc_asr_app_id: SecretStr | None = None
