@@ -8,7 +8,6 @@ services:
     dockerContext: ./live
     autoDeployTrigger: off
     healthCheckPath: /api/health/ready
-    maxShutdownDelaySeconds: 60
     disk:
       name: douyinlm-data
       mountPath: /var/data
