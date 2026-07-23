@@ -55,15 +55,17 @@ export function VibeLauncher({
   };
 
   return (
-    <div className="mt-9 rounded-2xl border border-line bg-canvas/80 p-2 shadow-innerline">
+    <div className="launcher-shell mt-9 rounded-[22px] border border-line bg-canvas/80 p-2 shadow-innerline">
       {scopeDescription && (
         <p className="px-3 pt-2 pb-1 text-[11px] font-medium text-muted">启动范围：{scopeDescription}</p>
       )}
-      <form className="flex items-center gap-3 rounded-xl bg-white px-4 py-3" onSubmit={submit}>
-        <SparklesIcon className="size-5 shrink-0 text-accent" />
+      <form className="launcher-form flex items-center gap-3 rounded-2xl bg-white px-4 py-3" onSubmit={submit}>
+        <span className="launcher-icon grid size-9 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
+          <SparklesIcon className="size-4.5" />
+        </span>
         <input
           aria-label="Vibe 输入"
-          className="min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-faint"
+          className="min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-faint sm:text-base"
           maxLength={500}
           onChange={(event) => setGoal(event.target.value)}
           onKeyDown={(event) => {
@@ -75,7 +77,7 @@ export function VibeLauncher({
           value={goal}
         />
         <button
-          className="primary-button shrink-0 px-3 py-2 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-faint disabled:shadow-none"
+          className="primary-button launcher-button shrink-0 px-4 py-3 disabled:cursor-not-allowed disabled:bg-disabled disabled:text-faint disabled:shadow-none"
           disabled={!trimmedGoal || createWorkspace.isPending}
           type="submit"
         >

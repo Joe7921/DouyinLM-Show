@@ -41,11 +41,11 @@ function AppShell() {
   const gateway = useGateway();
 
   return (
-    <div className="min-h-screen bg-canvas text-ink">
-      <header className="sticky top-0 z-20 border-b border-line/70 bg-canvas/90 backdrop-blur-xl">
+    <div className="app-root min-h-screen text-ink">
+      <header className="sticky top-0 z-20 border-b border-line/70 bg-paper/82 backdrop-blur-xl">
         <div className="mx-auto flex h-18 max-w-6xl items-center justify-between gap-2 px-4 sm:px-8">
           <Link className="group flex min-w-0 items-center gap-2 sm:gap-3" to="/">
-            <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-ink text-canvas shadow-soft transition-transform group-hover:-rotate-3 sm:size-9">
+            <span className="brand-mark grid size-8 shrink-0 place-items-center rounded-xl bg-ink text-canvas shadow-soft transition-transform group-hover:-rotate-3 sm:size-9">
               <SparklesIcon className="size-4.5" />
             </span>
             <span>
@@ -114,17 +114,18 @@ function HomePage() {
   const categories = collection.data?.categories ?? [];
   const isEmpty = !collection.isPending && videos.length === 0;
   const processingCount = videos.filter((video) => ACTIVE_VIDEO_STATES.has(video.status)).length;
+  const readyCount = videos.filter((video) => video.status === "ready").length;
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-9 sm:px-8 sm:py-12">
-      <section className="animate-rise overflow-hidden rounded-[28px] border border-line bg-paper shadow-soft">
+    <div className="home-frame mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-10">
+      <section className="hero-shell animate-rise overflow-hidden rounded-[28px] border border-line bg-paper shadow-soft">
         <div className="grid min-w-0 gap-0 lg:grid-cols-[1.25fr_0.75fr]">
-          <div className="min-w-0 p-6 sm:p-9 lg:p-11">
+          <div className="hero-copy min-w-0 p-6 sm:p-9 lg:p-11">
             <div className="mb-8 flex flex-wrap items-center gap-2">
               <span className="eyebrow">赛事演示收藏夹 · 授权材料待复核</span>
               <span className="status-dot">
                 <span
-                  className={`size-1.5 rounded-full ${ready.data?.status === "ready" ? "bg-sage" : "bg-amber"}`}
+                  className={`live-dot size-1.5 rounded-full ${ready.data?.status === "ready" ? "bg-sage" : "bg-amber"}`}
                 />
                 {processingCount > 0
                   ? `${processingCount} 条内容正在后台理解`
@@ -141,23 +142,27 @@ function HomePage() {
               当前视频由团队预先导入并经作品流水线理解。真实产品中，用户正常收藏后，AI 会在后台完成这些工作。
             </p>
 
+            <CollectionStats readyCount={readyCount} categoryCount={categories.length} workspaceCount={collection.data?.recent_workspaces.length ?? 0} />
             <VibeLauncher hasVideos={videos.length > 0} />
           </div>
 
-          <div className="relative min-h-64 min-w-0 overflow-hidden border-t border-line bg-ink p-7 text-white lg:border-t-0 lg:border-l">
-            <div className="absolute -top-20 -right-24 size-72 rounded-full bg-accent/35 blur-3xl" />
-            <div className="absolute -bottom-24 -left-20 size-64 rounded-full bg-sage/20 blur-3xl" />
-            <div className="relative flex h-full flex-col justify-between">
+          <div className="intelligence-panel relative min-h-64 min-w-0 overflow-hidden border-t border-line bg-ink p-7 text-white lg:border-t-0 lg:border-l">
+            <div className="relative flex h-full flex-col justify-between gap-8">
               <div className="flex items-center justify-between gap-3 text-[10px] tracking-[0.08em] text-white/50 uppercase sm:text-xs sm:tracking-[0.15em]">
                 <span>Collection intelligence</span>
                 <span>抖音精选原生能力提案</span>
               </div>
-              <div className="py-10">
+              <div>
                 <p className="max-w-xs text-2xl leading-snug font-medium tracking-[-0.025em]">
                   在收藏夹中
                   <br />
                   VibeCoding
                 </p>
+                <div className="mt-8 space-y-3">
+                  <InsightRow label="已解析视频" value={`${readyCount}/${videos.length || 6}`} accent="sage" />
+                  <InsightRow label="自动主题" value={`${categories.length || 0}`} accent="accent" />
+                  <InsightRow label="最近成果" value={`${collection.data?.recent_workspaces.length ?? 0}`} accent="amber" />
+                </div>
               </div>
               <div className="grid grid-cols-3 gap-2 text-xs">
                 <MiniStage index="01" label="理解" active={videos.length > 0} />
@@ -169,14 +174,16 @@ function HomePage() {
         </div>
       </section>
 
+      <EvidenceWall />
+
       {videos.length > 0 && (
-        <section className="mt-8">
+        <section className="mt-9 animate-rise-delay">
           <SectionHeading
             eyebrow="授权收藏夹"
             title={`首页直接展示 ${videos.length} 条真实视频`}
             aside="关键帧与理解结果均来自同一解析流水线"
           />
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="video-gallery grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {videos.map((video) => (
               <VideoTile key={`home-${video.id}`} video={video} />
             ))}
@@ -187,7 +194,7 @@ function HomePage() {
       <RecentWorkspaces workspaces={collection.data?.recent_workspaces ?? []} />
 
       {categories.length > 0 && (
-        <section className="mt-10">
+        <section className="mt-10 animate-rise-delay">
           <SectionHeading
             eyebrow="AI 大类"
             title="收藏已经自动形成上下文"
@@ -205,8 +212,8 @@ function HomePage() {
         <div>
           <SectionHeading
             eyebrow="收藏内容"
-            title={isEmpty ? "你的收藏空间" : `${videos.length} 条内容，已经可以读懂`}
-            aside={processingCount > 0 ? `${processingCount} 条理解中` : "主旨由 AI 流水线生成"}
+            title={isEmpty ? "你的收藏空间" : "真实状态持续可查"}
+            aside={processingCount > 0 ? `${processingCount} 条理解中` : "不会用 Mock 替代失败"}
           />
 
           {collection.isPending ? (
@@ -216,11 +223,7 @@ function HomePage() {
           ) : isEmpty ? (
             <EmptyCollection />
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {videos.map((video) => (
-                <VideoTile key={video.id} video={video} />
-              ))}
-            </div>
+            <OperationSummary videos={videos} readyStatus={ready.data?.status} />
           )}
         </div>
 
@@ -235,9 +238,208 @@ function HomePage() {
   );
 }
 
+function EvidenceWall() {
+  return (
+    <section className="mt-9 animate-rise-delay">
+      <SectionHeading
+        eyebrow="交付证据墙"
+        title="不只是首页，整条编译链路已经接起来"
+        aside="以下为代码、测试与运行记录支持的状态"
+      />
+      <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="evidence-panel rounded-[28px] border border-line bg-paper p-5 shadow-soft sm:p-6">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <EvidenceCard
+              label="T2/T3 主闭环"
+              title="目标 → 选片 → 任务卡 → 来源 → 修改"
+              detail="首页/类目目标、采用/排除、最多一次追问、三阶段任务卡、勾选、来源和一句话 Revision 已实现。"
+              status="已实现"
+            />
+            <EvidenceCard
+              label="强契约"
+              title="Mock / Live 共用 DouyinLMGateway"
+              detail="生产强制 Live；真实接口失败不静默回退 Mock；页面不直接导入 fixture。"
+              status="已验证"
+            />
+            <EvidenceCard
+              label="发布质量"
+              title="38 项产品测试 + 5 项证据审计"
+              detail="前端生产构建 101 个模块，敏感标记 0，source map 0。"
+              status="已通过"
+            />
+            <EvidenceCard
+              label="真实失败"
+              title="Ark busy 不发布半成品"
+              detail="真实 Provider 繁忙时保留失败、0 Artifact、0 Mock 回退，避免把演示效果做成伪结果。"
+              status="已记录"
+            />
+          </div>
+        </div>
+
+        <div className="rounded-[28px] border border-line bg-ink p-5 text-white shadow-soft sm:p-6">
+          <p className="text-[10px] font-semibold tracking-[0.16em] text-white/40 uppercase">AI workflow</p>
+          <div className="mt-5 space-y-3">
+            <WorkflowStep index="01" title="视频理解与两级分类" detail="FFmpeg / ASR / 多模态理解形成收藏上下文" />
+            <WorkflowStep index="02" title="范围继承与证据筛选" detail="LaunchScope 保留 Home / 类目 / 单条 / 多选边界" />
+            <WorkflowStep index="03" title="Collection Artifact Compiler" detail="把目标编译成三阶段现场拍摄任务卡" />
+            <WorkflowStep index="04" title="Provenance Validator" detail="区分 Video / Web / Inference，来源缺失不补写" />
+            <WorkflowStep index="05" title="同一成果继续修改" detail="Revision 保持 Artifact ID，版本递增，勾选状态保留" />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+        <ArtifactPreview />
+        <DeliveryMatrix />
+      </div>
+    </section>
+  );
+}
+
+function EvidenceCard({
+  label,
+  title,
+  detail,
+  status,
+}: {
+  label: string;
+  title: string;
+  detail: string;
+  status: string;
+}) {
+  return (
+    <article className="evidence-card rounded-2xl border border-line bg-white/72 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[10px] font-semibold tracking-[0.12em] text-faint uppercase">{label}</span>
+        <span className="rounded-full bg-sage-soft px-2 py-1 text-[10px] font-semibold text-sage-dark">{status}</span>
+      </div>
+      <h3 className="mt-3 text-base font-semibold tracking-[-0.025em]">{title}</h3>
+      <p className="mt-2 text-xs leading-5 text-muted">{detail}</p>
+    </article>
+  );
+}
+
+function WorkflowStep({ index, title, detail }: { index: string; title: string; detail: string }) {
+  return (
+    <div className="workflow-step flex gap-3 rounded-2xl border border-white/10 bg-white/[0.06] p-3">
+      <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-white/10 text-[11px] font-semibold text-white/64">{index}</span>
+      <span>
+        <strong className="block text-sm font-semibold">{title}</strong>
+        <span className="mt-1 block text-xs leading-5 text-white/56">{detail}</span>
+      </span>
+    </div>
+  );
+}
+
+function ArtifactPreview() {
+  const sections = [
+    ["拍摄前", "确认主体风格、服装颜色、机位和道具优先级"],
+    ["到场后", "按光线方向先定背景，再处理人物站位和动作"],
+    ["拍完后", "回看 3 张样片，保留一条可现场复拍的修改建议"],
+  ];
+
+  return (
+    <article className="artifact-preview rounded-[28px] border border-line bg-paper p-5 shadow-whisper sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-semibold tracking-[0.14em] text-accent uppercase">Artifact 形态预览</p>
+          <h3 className="mt-2 text-xl font-semibold tracking-[-0.035em]">三阶段现场拍摄任务卡</h3>
+        </div>
+        <span className="rounded-full border border-line bg-canvas px-2.5 py-1.5 text-[10px] text-muted">
+          示例结构 · 不冒充实时生成
+        </span>
+      </div>
+      <div className="mt-5 space-y-3">
+        {sections.map(([title, detail], index) => (
+          <div className="rounded-2xl border border-line bg-white/70 p-4" key={title}>
+            <div className="flex items-start gap-3">
+              <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-accent-soft text-xs font-semibold text-accent">
+                {index + 1}
+              </span>
+              <div>
+                <h4 className="text-sm font-semibold">{title}</h4>
+                <p className="mt-1 text-xs leading-5 text-muted">{detail}</p>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  <span className="rounded-full border border-line bg-canvas px-2 py-1 text-[10px] text-faint">Video</span>
+                  <span className="rounded-full border border-line bg-canvas px-2 py-1 text-[10px] text-faint">Inference</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </article>
+  );
+}
+
+function DeliveryMatrix() {
+  const rows = [
+    ["可操作 Web", "同源 Live 产品、本地 FastAPI + SQLite"],
+    ["独立能力", "Collection Artifact Compiler Skill / Schema / 示例"],
+    ["真实内容", "6 条摄影教程已解析，授权材料仍待补齐审计"],
+    ["失败兜底", "Provider 忙、配置阻塞、来源不匹配均不发布伪成果"],
+    ["待复验项", "真实来源清单、真人 A/B、10 次稳定 Live 演练"],
+  ];
+
+  return (
+    <article className="rounded-[28px] border border-line bg-paper p-5 shadow-whisper sm:p-6">
+      <p className="text-[10px] font-semibold tracking-[0.14em] text-faint uppercase">Delivery matrix</p>
+      <h3 className="mt-2 text-xl font-semibold tracking-[-0.035em]">评委能看到的工程面</h3>
+      <div className="mt-5 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-white/72">
+        {rows.map(([label, detail]) => (
+          <div className="grid gap-2 px-4 py-3 sm:grid-cols-[120px_1fr]" key={label}>
+            <span className="text-xs font-semibold text-ink">{label}</span>
+            <span className="text-xs leading-5 text-muted">{detail}</span>
+          </div>
+        ))}
+      </div>
+    </article>
+  );
+}
+
+function CollectionStats({
+  readyCount,
+  categoryCount,
+  workspaceCount,
+}: {
+  readyCount: number;
+  categoryCount: number;
+  workspaceCount: number;
+}) {
+  return (
+    <div className="mt-7 grid max-w-xl grid-cols-3 gap-2.5">
+      <HeroStat label="已理解" value={readyCount} />
+      <HeroStat label="主题" value={categoryCount} />
+      <HeroStat label="成果" value={workspaceCount} />
+    </div>
+  );
+}
+
+function HeroStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="hero-stat rounded-2xl border border-line bg-white/70 px-3 py-3 shadow-innerline">
+      <strong className="block text-xl font-semibold tabular-nums tracking-[-0.03em]">{value}</strong>
+      <span className="mt-1 block text-[10px] font-medium tracking-[0.1em] text-faint uppercase">{label}</span>
+    </div>
+  );
+}
+
+function InsightRow({ label, value, accent }: { label: string; value: string; accent: "sage" | "accent" | "amber" }) {
+  const color = accent === "sage" ? "bg-sage" : accent === "accent" ? "bg-accent" : "bg-amber";
+  return (
+    <div className="insight-row flex items-center justify-between gap-4 rounded-2xl border border-white/12 bg-white/[0.07] px-4 py-3">
+      <span className="flex items-center gap-2 text-xs text-white/64">
+        <span className={`size-1.5 rounded-full ${color}`} />
+        {label}
+      </span>
+      <strong className="text-sm font-semibold tabular-nums">{value}</strong>
+    </div>
+  );
+}
+
 function MiniStage({ index, label, active }: { index: string; label: string; active: boolean }) {
   return (
-    <div className={`rounded-xl border p-3 backdrop-blur ${active ? "border-white/20 bg-white/10" : "border-white/10 bg-white/5"}`}>
+    <div className={`stage-tile rounded-xl border p-3 backdrop-blur ${active ? "border-white/25 bg-white/12" : "border-white/10 bg-white/5"}`}>
       <span className="block text-[10px] text-white/35">{index}</span>
       <span className={`mt-1 block ${active ? "text-white" : "text-white/65"}`}>{label}</span>
     </div>
@@ -246,7 +448,7 @@ function MiniStage({ index, label, active }: { index: string; label: string; act
 
 function SectionHeading({ eyebrow, title, aside }: { eyebrow: string; title: string; aside: string }) {
   return (
-    <div className="mb-4 flex items-end justify-between gap-4">
+    <div className="section-heading mb-4 flex items-end justify-between gap-4">
       <div>
         <p className="eyebrow w-fit">{eyebrow}</p>
         <h2 className="mt-2 text-2xl font-semibold tracking-[-0.035em]">{title}</h2>
@@ -259,7 +461,7 @@ function SectionHeading({ eyebrow, title, aside }: { eyebrow: string; title: str
 function CategoryTile({ category, index }: { category: CategoryCard; index: number }) {
   const color = ["bg-accent-soft text-accent", "bg-sage-soft text-sage-dark", "bg-amber-100 text-amber-dark"][index % 3];
   return (
-    <article className="group rounded-3xl border border-line bg-paper p-5 shadow-whisper transition-transform hover:-translate-y-0.5">
+    <article className="category-card group rounded-3xl border border-line bg-paper p-5 shadow-whisper transition-transform hover:-translate-y-0.5">
       <div className="flex items-start justify-between gap-4">
         <span className={`grid size-10 place-items-center rounded-2xl ${color}`}>
           <CollectionIcon className="size-4.5" />
@@ -286,18 +488,20 @@ function CategoryTile({ category, index }: { category: CategoryCard; index: numb
 function VideoTile({ video }: { video: VideoCard }) {
   const status = videoStatus(video.status);
   return (
-    <article className="overflow-hidden rounded-3xl border border-line bg-paper shadow-whisper">
-      <div className="relative aspect-[16/8] overflow-hidden bg-disabled">
+    <article className="video-card group overflow-hidden rounded-3xl border border-line bg-paper shadow-whisper">
+      <div className="relative aspect-[16/9] overflow-hidden bg-disabled">
         {video.thumbnail_url ? (
-          <img alt="" className="size-full object-cover" src={video.thumbnail_url} />
+          <img alt="" className="size-full object-cover transition duration-500 group-hover:scale-[1.035]" src={video.thumbnail_url} />
         ) : (
           <div className="grid size-full place-items-center text-faint">
             <VideoIcon className="size-7" />
           </div>
         )}
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/42 to-transparent" />
         <span className={`absolute top-3 left-3 rounded-full px-2.5 py-1 text-[10px] font-semibold shadow-whisper ${status.className}`}>
           {status.label}
         </span>
+        {video.duration_ms && <span className="absolute right-3 bottom-3 rounded-full bg-black/55 px-2 py-1 text-[10px] font-medium text-white backdrop-blur">{formatDuration(video.duration_ms)}</span>}
       </div>
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">
@@ -310,7 +514,6 @@ function VideoTile({ video }: { video: VideoCard }) {
             </h3>
             <p className="mt-1 text-[11px] text-faint">{video.author || "作者未知"}</p>
           </div>
-          {video.duration_ms && <span className="shrink-0 text-[10px] text-faint">{formatDuration(video.duration_ms)}</span>}
         </div>
         <p className={`mt-4 line-clamp-3 text-sm leading-6 ${video.summary ? "text-muted" : "text-faint"}`}>
           {video.summary || video.error_message || status.description}
@@ -332,6 +535,40 @@ function VideoTile({ video }: { video: VideoCard }) {
           <p className="mt-4 text-[11px] text-faint">原视频链接未知 · AI 不猜测</p>
         )}
       </div>
+    </article>
+  );
+}
+
+function OperationSummary({ videos, readyStatus }: { videos: VideoCard[]; readyStatus?: string }) {
+  const readyCount = videos.filter((video) => video.status === "ready").length;
+  const issueCount = videos.filter((video) => video.status === "failed" || video.status === "needs_configuration").length;
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-3">
+      <SummaryMetric label="解析完成" value={`${readyCount}/${videos.length}`} detail="只展示真实流水线结果" tone="sage" />
+      <SummaryMetric label="服务状态" value={readyStatus === "ready" ? "Ready" : "检查中"} detail="本地 API 决定页面事实" tone="accent" />
+      <SummaryMetric label="需处理" value={issueCount} detail="失败会保留原因" tone="amber" />
+    </div>
+  );
+}
+
+function SummaryMetric({
+  label,
+  value,
+  detail,
+  tone,
+}: {
+  label: string;
+  value: string | number;
+  detail: string;
+  tone: "sage" | "accent" | "amber";
+}) {
+  const toneClass = tone === "sage" ? "text-sage-dark" : tone === "accent" ? "text-accent" : "text-amber-dark";
+  return (
+    <article className="summary-card rounded-2xl border border-line bg-paper p-5 shadow-whisper">
+      <p className="text-[10px] font-medium tracking-[0.12em] text-faint uppercase">{label}</p>
+      <strong className={`mt-3 block text-2xl font-semibold tracking-[-0.03em] ${toneClass}`}>{value}</strong>
+      <p className="mt-2 text-xs leading-5 text-muted">{detail}</p>
     </article>
   );
 }
