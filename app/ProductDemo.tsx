@@ -446,22 +446,43 @@ function CompactArtifact({ onOpenSource }: { onOpenSource: () => void }) {
 
 function ComparisonArtifact({ onOpenSource }: { onOpenSource: () => void }) {
   const options = [
-    { title: "边走边聊", note: "最自然 · 成片率高", score: "推荐", image: "/demo/video-seaside.jpg" },
-    { title: "逆光剪影", note: "氛围强 · 曝光较难", score: "备选", image: "/demo/video-seaside-detail.jpg" },
-    { title: "静态看镜头", note: "最稳定 · 互动感弱", score: "保底", image: "/demo/video-lotus-detail.jpg" },
+    { title: "边走边聊", note: "互动自然，动作容易连续完成", natural: 92, stable: 88, image: "/demo/video-seaside.jpg" },
+    { title: "逆光剪影", note: "氛围突出，但手机曝光容错较低", natural: 78, stable: 62, image: "/demo/video-seaside-detail.jpg" },
+    { title: "静态看镜头", note: "画面稳定，但与自然互动目标较弱", natural: 61, stable: 91, image: "/demo/video-lotus-detail.jpg" },
   ];
   return (
     <article className="artifact-card-v2 comparison-artifact">
-      <ArtifactHeader eyebrow="DECISION TABLE · 概念扩展演绎" title="海边人像 · 三种拍法对比" detail="用收藏证据帮助用户在现场快速做选择" meta="3 方案" />
-      <div className="comparison-grid">
+      <ArtifactHeader eyebrow="DECISION TABLE · 概念扩展演绎" title="逐条评估，再选择最优解" detail="同一时间只看一个方案，最后给出清晰结论" meta="3 → 1" />
+      <div className="decision-reel">
+        <div className="decision-reel-top">
+          <span><i /> AI 正在逐条评估</span>
+          <div>{options.map((option, index) => <i key={option.title} style={{ "--decision-dot-delay": `${index * 850}ms` } as CSSProperties}>{index + 1}</i>)}</div>
+        </div>
+        <div className="decision-stage">
         {options.map((option, index) => (
-          <section className={index === 0 ? "recommended" : ""} key={option.title}>
-            <div><Image alt="" fill sizes="120px" src={option.image} /></div>
-            <small>方案 {String.fromCharCode(65 + index)}</small><h4>{option.title}</h4><p>{option.note}</p><b>{option.score}</b>
+            <section className="decision-candidate" key={option.title} style={{ "--candidate-delay": `${120 + index * 850}ms` } as CSSProperties}>
+              <div className="candidate-image"><Image alt="" fill sizes="260px" src={option.image} /><span>方案 {String.fromCharCode(65 + index)}</span></div>
+              <div className="candidate-copy">
+                <small>EVALUATING · {String(index + 1).padStart(2, "0")} / 03</small>
+                <h4>{option.title}</h4><p>{option.note}</p>
+                <div className="candidate-metric"><span>自然互动</span><i><b style={{ width: `${option.natural}%` }} /></i><em>{option.natural}</em></div>
+                <div className="candidate-metric"><span>现场稳定</span><i><b style={{ width: `${option.stable}%` }} /></i><em>{option.stable}</em></div>
+              </div>
+            </section>
+          ))}
+          <section className="decision-winner">
+            <div className="winner-image"><Image alt="" fill sizes="260px" src={options[0].image} /><span>最优解</span></div>
+            <div className="winner-copy">
+              <small>AI RECOMMENDATION</small><h4>边走边聊</h4>
+              <p>最符合“自然互动人像”，同时兼顾手机拍摄的现场稳定性。</p>
+              <div><span>自然互动 92</span><span>现场稳定 88</span><span>操作难度低</span></div>
+              <b><i>✓</i> 已选为执行方案</b>
+            </div>
           </section>
-        ))}
+        </div>
+        <p className="decision-reason"><span>选择依据</span>目标匹配度 × 收藏证据 × 现场可执行性</p>
       </div>
-      <footer><span>由 3 条授权视频与 AI 综合判断</span><button onClick={onOpenSource} type="button">打开对比依据 →</button></footer>
+      <footer><span>逐条评估 3 个方案 · 最终保留 1 个最优解</span><button onClick={onOpenSource} type="button">打开选择依据 →</button></footer>
     </article>
   );
 }

@@ -27,6 +27,8 @@ test("interactive demo covers the complete judge loop honestly", async () => {
   }
   assert.match(demo, /crypto\.getRandomValues/);
   assert.match(demo, /概念扩展演绎/);
+  assert.match(demo, /逐条评估，再选择最优解/);
+  assert.match(demo, /已选为执行方案/);
   assert.match(demo, /VIDEO/);
   assert.match(demo, /INFERENCE/);
   assert.match(demo, /Artifact ID 保持不变/);
