@@ -8,7 +8,9 @@ export const metadata: Metadata = {
   description: "把收藏的视频，编译成可以直接行动的成果。",
 };
 
-const productUrl = process.env.NEXT_PUBLIC_PRODUCT_URL?.trim() || "#demo";
+const productUrl =
+  process.env.NEXT_PUBLIC_PRODUCT_URL?.trim() ||
+  "https://douyinlm-live.onrender.com";
 
 const steps = [
   ["01", "说出目标", "不整理收藏夹，只描述这次真正想完成的事。"],
