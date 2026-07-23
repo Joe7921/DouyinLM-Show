@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+@theme {
+  --color-canvas: #f6f3ed;
+  --color-paper: #fffdf9;
+  --color-ink: #1d1d1b;
+  --color-muted: #686761;
+  --color-faint: #9b9990;
+  --color-line: #e5e0d6;
+  --color-line-strong: #d6cfc2;
+  --color-disabled: #ebe7df;
+  --color-accent: #eb553c;
+  --color-accent-soft: #fce8e1;
+  --color-sage: #6c9471;
+  --color-sage-dark: #3f6948;
+  --color-sage-soft: #e4f0e4;
+  --color-amber: #d89b3c;
+  --color-amber-dark: #94651e;
+  --shadow-soft: 0 24px 60px rgb(49 42 33 / 0.08);
+  --shadow-whisper: 0 8px 24px rgb(49 42 33 / 0.05);
+  --shadow-innerline: inset 0 1px 0 rgb(255 255 255 / 0.9);
+}
+
+:root {
+  font-family:
+    Inter, "SF Pro Display", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system,
+    sans-serif;
+  color: var(--color-ink);
+  background: var(--color-canvas);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--color-canvas);
+}
+
+body {
+  margin: 0;
+  min-width: 0;
+  min-height: 100vh;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.eyebrow {
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.68);
+  padding: 0.38rem 0.65rem;
+  color: var(--color-muted);
+  font-size: 0.625rem;
+  font-weight: 650;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.status-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--color-muted);
+  font-size: 0.7rem;
+}
+
+.primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 0;
+  border-radius: 0.75rem;
+  background: var(--color-ink);
+  padding: 0.75rem 1rem;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 7px 16px rgb(29 29 27 / 0.14);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.primary-button:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgb(29 29 27 / 0.18);
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-rise {
+  animation: rise 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
