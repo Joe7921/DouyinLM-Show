@@ -612,6 +612,16 @@ class CollectionArtifactCompiler:
                 clarification_used=clarification_used,
                 generation_authorized=bool(payload.get("generation_authorized", False)),
             )
+            if result.model_id.startswith("deepseek"):
+                with self._database.session() as session:
+                    session.add(
+                        WorkspaceMessage(
+                            workspace_id=workspace_id,
+                            role="system_event",
+                            content="火山方舟不可用，本次由 DeepSeek-V4-Flash 接管。",
+                        )
+                    )
+                    session.commit()
             self._record_provider_call(job_id, workspace_id, "compile_collection_artifact", result)
             _validate_compilation_result(
                 result.draft,
@@ -807,7 +817,9 @@ class CollectionArtifactCompiler:
                     analysis_run_id=None,
                     workspace_id=workspace_id,
                     job_id=job_id,
-                    provider="ark",
+                    provider=(
+                        "deepseek" if result.model_id.startswith("deepseek") else "ark"
+                    ),
                     operation=operation,
                     model_id=result.model_id,
                     status="completed",

@@ -300,6 +300,14 @@ function WorkspaceFailureCard({
         <Link className="text-xs font-medium text-muted hover:text-ink" to="/">
           返回收藏夹
         </Link>
+        {!blocked && (
+          <a
+            className="rounded-xl border border-amber/30 bg-white px-4 py-3 text-xs font-semibold text-ink hover:border-ink/30"
+            href="/?demo=mock"
+          >
+            明确切换到 Mock 演示
+          </a>
+        )}
       </div>
       {retryError && <p className="mt-4 text-xs text-red-700">恢复失败：{retryError.message}</p>}
     </section>

@@ -4,7 +4,7 @@ import hashlib
 import json
 import time
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from threading import Lock
 from typing import Any, Protocol
 
@@ -289,6 +289,110 @@ class ArkCompilerProvider:
                 max_retries=0,
             )
         return self._client
+
+
+class DeepSeekCompilerProvider(ArkCompilerProvider):
+    """OpenAI-compatible DeepSeek fallback for Artifact compilation."""
+
+    def compile(self, **kwargs: Any) -> CompilationModelResult:
+        return replace(super().compile(**kwargs), model_id=self._settings.deepseek_model)
+
+    def revise(self, **kwargs: Any) -> RevisionModelResult:
+        return replace(super().revise(**kwargs), model_id=self._settings.deepseek_model)
+
+    def _run_tool(
+        self,
+        *,
+        prompt: str,
+        tool_name: str,
+        tool_description: str,
+        schema: dict[str, Any],
+        request_payload: dict[str, Any],
+    ) -> tuple[Any, str, str, int]:
+        client = self._get_client()
+        request_hash = _stable_hash(
+            {
+                "operation": tool_name,
+                "model": self._settings.deepseek_model,
+                "payload": request_payload,
+            }
+        )
+        started = self._clock()
+        try:
+            response = client.chat.completions.create(
+                model=self._settings.deepseek_model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            f"{tool_description}。只返回符合下列 JSON Schema 的一个 JSON 对象，"
+                            f"不要输出 Markdown：{json.dumps(schema, ensure_ascii=False)}"
+                        ),
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                response_format={"type": "json_object"},
+                stream=False,
+            )
+        except Exception as exc:
+            mapped = _map_deepseek_error(exc)
+            raise mapped from exc
+        duration_ms = round((self._clock() - started) * 1000)
+        raw_text = response.choices[0].message.content
+        if not isinstance(raw_text, str) or not raw_text.strip():
+            raise PipelineError(
+                "deepseek_invalid_response",
+                "DeepSeek 没有返回结构化任务卡结果。",
+                retryable=True,
+            )
+        return response, raw_text, request_hash, duration_ms
+
+    def _get_client(self) -> Any:
+        if self._client is not None:
+            return self._client
+        if self._settings.deepseek_api_key is None:
+            raise ProviderNotConfigured(
+                "deepseek_not_configured",
+                "DeepSeek API Key 尚未配置。",
+            )
+        with self._client_lock:
+            if self._client is not None:
+                return self._client
+            from openai import OpenAI
+
+            self._client = OpenAI(
+                api_key=self._settings.deepseek_api_key.get_secret_value(),
+                base_url=self._settings.deepseek_base_url,
+                timeout=self._settings.compiler_timeout_seconds,
+                max_retries=0,
+            )
+        return self._client
+
+
+class FailoverCompilerProvider:
+    """Try the real primary provider, then the real secondary provider."""
+
+    def __init__(self, primary: CompilerProvider, secondary: CompilerProvider) -> None:
+        self._primary = primary
+        self._secondary = secondary
+
+    def warmup(self) -> None:
+        for provider in (self._primary, self._secondary):
+            warmup = getattr(provider, "warmup", None)
+            if callable(warmup):
+                warmup()
+
+    def compile(self, **kwargs: Any) -> CompilationModelResult:
+        try:
+            return self._primary.compile(**kwargs)
+        except PipelineError:
+            return self._secondary.compile(**kwargs)
+
+    def revise(self, **kwargs: Any) -> RevisionModelResult:
+        try:
+            return self._primary.revise(**kwargs)
+        except PipelineError:
+            return self._secondary.revise(**kwargs)
 
 
 def _compile_prompt(payload: dict[str, Any]) -> str:
@@ -719,6 +823,32 @@ def _map_compiler_error(exc: Exception) -> PipelineError:
     if "timeout" in name or "connection" in name:
         return PipelineError("ark_network_error", "火山方舟暂时无法连接。", retryable=True)
     return PipelineError("ark_request_failed", "火山方舟任务卡编译请求失败。")
+
+
+def _map_deepseek_error(exc: Exception) -> PipelineError:
+    if isinstance(exc, PipelineError):
+        return exc
+    status_code = getattr(exc, "status_code", None)
+    if status_code == 401:
+        return PipelineError("deepseek_auth_error", "DeepSeek 凭证无效。")
+    if status_code == 403:
+        return PipelineError("deepseek_forbidden", "DeepSeek 拒绝了本次请求。")
+    if status_code == 400:
+        return PipelineError("deepseek_invalid_request", "DeepSeek 未接受本次任务卡请求。")
+    if status_code == 429 or (isinstance(status_code, int) and status_code >= 500):
+        return PipelineError(
+            "deepseek_busy",
+            "方舟与 DeepSeek 当前均不可用；可以明确切换到 Mock 演示。",
+            retryable=True,
+        )
+    name = type(exc).__name__.lower()
+    if "timeout" in name or "connection" in name:
+        return PipelineError(
+            "deepseek_network_error",
+            "方舟与 DeepSeek 当前均无法连接；可以明确切换到 Mock 演示。",
+            retryable=True,
+        )
+    return PipelineError("deepseek_request_failed", "DeepSeek 任务卡编译请求失败。")
 
 
 def _compiler_retry_delay(exc: Exception, settings: Settings) -> float:

@@ -13,9 +13,17 @@ export function resolveDataMode(env: ImportMetaEnv = import.meta.env): "live" | 
 }
 
 export function createAppGateway(env: ImportMetaEnv = import.meta.env): DouyinLMGateway {
+  if (hasExplicitMockOptIn()) {
+    return new MockGateway({ scenario: "happy_path", storage: getSessionStorage() });
+  }
   if (resolveDataMode(env) === "live") return liveGateway;
   const scenario = (env.VITE_MOCK_SCENARIO || "happy_path") as MockScenarioKey;
   return new MockGateway({ scenario, storage: getSessionStorage() });
+}
+
+function hasExplicitMockOptIn(): boolean {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get("demo") === "mock";
 }
 
 function getSessionStorage(): Storage | undefined {

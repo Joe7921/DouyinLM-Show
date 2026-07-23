@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     ark_base_url: str = "https://ark.cn-beijing.volces.com/api/v3"
     ark_model: str = "doubao-seed-2-0-lite-260215"
     ark_api_key: SecretStr | None = None
+    deepseek_base_url: str = "https://api.deepseek.com"
+    deepseek_model: str = "deepseek-v4-flash"
+    deepseek_api_key: SecretStr | None = None
     ark_upload_purpose: str = "user_data"
     volc_asr_api_key: SecretStr | None = None
     volc_asr_app_id: SecretStr | None = None

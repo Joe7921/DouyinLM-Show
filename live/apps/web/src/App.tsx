@@ -169,6 +169,21 @@ function HomePage() {
         </div>
       </section>
 
+      {videos.length > 0 && (
+        <section className="mt-8">
+          <SectionHeading
+            eyebrow="授权收藏夹"
+            title={`首页直接展示 ${videos.length} 条真实视频`}
+            aside="关键帧与理解结果均来自同一解析流水线"
+          />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {videos.map((video) => (
+              <VideoTile key={`home-${video.id}`} video={video} />
+            ))}
+          </div>
+        </section>
+      )}
+
       <RecentWorkspaces workspaces={collection.data?.recent_workspaces ?? []} />
 
       {categories.length > 0 && (

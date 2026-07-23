@@ -12,7 +12,12 @@ from fastapi.staticfiles import StaticFiles
 
 from douyinlm.api.routes import router
 from douyinlm.jobs.runner import JobRunner
-from douyinlm.providers.compiler import ArkCompilerProvider, CompilerProvider
+from douyinlm.providers.compiler import (
+    ArkCompilerProvider,
+    CompilerProvider,
+    DeepSeekCompilerProvider,
+    FailoverCompilerProvider,
+)
 from douyinlm.providers.errors import PipelineError
 from douyinlm.repositories.database import Database, run_migrations
 from douyinlm.services.collection_artifact_compiler import CollectionArtifactCompiler
@@ -34,7 +39,18 @@ def create_app(
         run_migrations(app_settings.database_url)
         database = Database(app_settings.database_url)
         pipeline = VideoPipeline(database, app_settings)
-        active_compiler_provider = compiler_provider or ArkCompilerProvider(app_settings)
+        if compiler_provider is not None:
+            active_compiler_provider = compiler_provider
+        else:
+            ark_provider = ArkCompilerProvider(app_settings)
+            active_compiler_provider = (
+                FailoverCompilerProvider(
+                    ark_provider,
+                    DeepSeekCompilerProvider(app_settings),
+                )
+                if app_settings.deepseek_api_key is not None
+                else ark_provider
+            )
         artifact_compiler = CollectionArtifactCompiler(database, active_compiler_provider)
         job_runner = JobRunner(
             database,
